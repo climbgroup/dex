@@ -1004,6 +1004,107 @@ package "parent-plugin" {
 	assert.True(t, hasChild, "child-plugin (transitive dep) must remain in lock file after sync")
 }
 
+// TestSync_TransitiveDependencyMCPRetainedOnResync reproduces a bug where
+// a transitive dependency's shared-file contributions (MCP servers, settings,
+// agent content) are dropped from the regenerated config files on the second
+// sync.
+//
+// Repro: parent depends on child, and child contributes an mcp_server.
+// First sync installs both — child's installPackage runs (via installDependencies)
+// and adds its contribution. Second sync sees child already locked, so
+// installDependencies skips it; the contribution is never collected, and
+// generateSharedFiles() rewrites .mcp.json without child's server.
+func TestSync_TransitiveDependencyMCPRetainedOnResync(t *testing.T) {
+	projectDir := t.TempDir()
+	registryDir := t.TempDir()
+
+	createLocalRegistryIndex(t, registryDir, map[string][]string{
+		"parent-plugin": {"1.0.0"},
+		"child-plugin":  {"1.0.0"},
+	})
+
+	// child-plugin contributes an MCP server
+	childDir := filepath.Join(registryDir, "child-plugin")
+	require.NoError(t, os.MkdirAll(childDir, 0755))
+	err := os.WriteFile(filepath.Join(childDir, "package.hcl"), []byte(`
+meta {
+  name        = "child-plugin"
+  version     = "1.0.0"
+  description = "Child plugin contributing an MCP server"
+}
+
+mcp_server "child-server" {
+  description = "MCP server from child-plugin"
+  command     = "child-cmd"
+}
+`), 0644)
+	require.NoError(t, err)
+
+	// parent-plugin depends on child-plugin and contributes its own MCP server
+	parentDir := filepath.Join(registryDir, "parent-plugin")
+	require.NoError(t, os.MkdirAll(parentDir, 0755))
+	err = os.WriteFile(filepath.Join(parentDir, "package.hcl"), []byte(`
+meta {
+  name        = "parent-plugin"
+  version     = "1.0.0"
+  description = "Parent plugin"
+}
+
+dependency "child-plugin" {
+  version = ">=1.0.0"
+}
+
+mcp_server "parent-server" {
+  description = "MCP server from parent-plugin"
+  command     = "parent-cmd"
+}
+`), 0644)
+	require.NoError(t, err)
+
+	// Project only references parent-plugin directly
+	createTestProject(t, projectDir, `
+registry "local" {
+  path = "`+registryDir+`"
+}
+
+package "parent-plugin" {
+  registry = "local"
+}
+`)
+
+	mcpPath := filepath.Join(projectDir, ".mcp.json")
+	readServers := func() map[string]any {
+		data, err := os.ReadFile(mcpPath)
+		require.NoError(t, err)
+		var doc map[string]any
+		require.NoError(t, json.Unmarshal(data, &doc))
+		servers, _ := doc["mcpServers"].(map[string]any)
+		return servers
+	}
+
+	// First sync — both servers should be present
+	inst, err := NewInstaller(projectDir, "")
+	require.NoError(t, err)
+	_, err = inst.Sync(false)
+	require.NoError(t, err)
+
+	servers := readServers()
+	assert.Contains(t, servers, "parent-server", "parent-server missing after first sync")
+	assert.Contains(t, servers, "child-server", "child-server missing after first sync")
+
+	// Second sync — bug: child-server is dropped because installDependencies
+	// skips already-locked child-plugin, so its contribution isn't collected
+	inst2, err := NewInstaller(projectDir, "")
+	require.NoError(t, err)
+	_, err = inst2.Sync(false)
+	require.NoError(t, err)
+
+	servers = readServers()
+	assert.Contains(t, servers, "parent-server", "parent-server missing after second sync")
+	assert.Contains(t, servers, "child-server",
+		"child-server (transitive dep contribution) was dropped on re-sync")
+}
+
 // =============================================================================
 // Profile Sync Tests
 // =============================================================================
