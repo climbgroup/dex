@@ -308,6 +308,14 @@ func (i *Installer) InstallAll() error {
 		}
 	}
 
+	// Collect contributions from any locked packages skipped above —
+	// notably transitive deps that installDependencies() skipped because
+	// they were already locked. Without this, their MCP/settings/agent
+	// contributions would be missing from the regenerated shared files.
+	if err := i.collectAllContributions(); err != nil {
+		return err
+	}
+
 	// Install project-level resources (dedicated files only)
 	if err := i.installProjectResources(); err != nil {
 		return err
@@ -503,7 +511,11 @@ func (i *Installer) installPackage(spec PackageSpec) (*InstalledPackage, error) 
 
 // collectAllContributions reinstalls all locked packages that haven't already
 // been installed in the current session to collect their shared file contributions.
-// This ensures generateSharedFiles() has complete data from all packages.
+// This ensures generateSharedFiles() has complete data from all packages,
+// including transitive dependencies that aren't listed directly in dex.hcl.
+// Without this, transitive deps' MCP servers, settings, and agent content
+// would be dropped from regenerated config files on every re-sync, since
+// installDependencies() skips already-locked deps.
 func (i *Installer) collectAllContributions() error {
 	// Build set of packages already collected
 	collected := make(map[string]bool)
@@ -511,22 +523,37 @@ func (i *Installer) collectAllContributions() error {
 		collected[c.pkgName] = true
 	}
 
-	// Re-install remaining locked packages to collect their contributions
-	for _, pkg := range i.project.Packages {
-		if collected[pkg.Name] {
+	// Index project package configs so we can preserve source/registry/config
+	// when re-installing direct packages.
+	pkgConfigs := make(map[string]config.PackageBlock)
+	for _, p := range i.project.Packages {
+		pkgConfigs[p.Name] = p
+	}
+
+	// Iterate locked packages in a deterministic order so contribution ordering
+	// (which affects agent file content) is stable across runs.
+	names := make([]string, 0, len(i.lock.Packages))
+	for name := range i.lock.Packages {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		if collected[name] {
 			continue
 		}
-		locked := i.lock.Get(pkg.Name)
+		locked := i.lock.Packages[name]
 		if locked == nil {
 			continue
 		}
-		spec := PackageSpec{
-			Name:     pkg.Name,
-			Version:  locked.Version,
-			Source:   pkg.Source,
-			Registry: pkg.Registry,
-			Config:   pkg.Config,
+
+		spec := PackageSpec{Name: name, Version: locked.Version}
+		if p, ok := pkgConfigs[name]; ok {
+			spec.Source = p.Source
+			spec.Registry = p.Registry
+			spec.Config = p.Config
 		}
+
 		if _, err := i.installPackage(spec); err != nil {
 			return err
 		}
@@ -1678,6 +1705,12 @@ func (i *Installer) Sync(dryRun bool) ([]SyncResult, error) {
 
 	// Generate shared files and save if not dry-run
 	if !dryRun {
+		// Collect contributions from transitive deps that were skipped above
+		// (already-locked deps don't go through installPackage during sync).
+		if err := i.collectAllContributions(); err != nil {
+			return nil, err
+		}
+
 		// Install project-level resources
 		if err := i.installProjectResources(); err != nil {
 			return nil, err
