@@ -10,11 +10,3 @@ settings "project_permissions" {
     enable_all_project_mcp_servers = true
   }
 }
-
-package "base-dev" {}
-
-package "code-review" {}
-
-registry "nexus" {
-  url = "https://regproduction.z13.web.core.windows.net"
-}

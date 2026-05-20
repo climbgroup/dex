@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // PackageConfig represents a package's package.hcl file.

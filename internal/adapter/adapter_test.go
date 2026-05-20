@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // getDirPaths extracts directory paths from a plan for test assertions.

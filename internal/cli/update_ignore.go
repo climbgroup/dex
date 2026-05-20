@@ -10,7 +10,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/launchcg/dex/internal/manifest"
+	"github.com/climbgroup/dex/internal/manifest"
 )
 
 const (

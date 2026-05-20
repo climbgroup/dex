@@ -1,4 +1,4 @@
-module github.com/launchcg/dex
+module github.com/climbgroup/dex
 
 go 1.24.0
 

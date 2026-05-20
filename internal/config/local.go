@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // LocalConfig represents optional user-level configuration that augments a project config.

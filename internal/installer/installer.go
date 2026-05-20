@@ -21,15 +21,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/launchcg/dex/internal/adapter"
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/internal/jsonutil"
-	"github.com/launchcg/dex/internal/lockfile"
-	"github.com/launchcg/dex/internal/manifest"
-	"github.com/launchcg/dex/internal/registry"
-	"github.com/launchcg/dex/internal/resolver"
-	"github.com/launchcg/dex/pkg/version"
+	"github.com/climbgroup/dex/internal/adapter"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/lockfile"
+	"github.com/climbgroup/dex/internal/manifest"
+	"github.com/climbgroup/dex/internal/registry"
+	"github.com/climbgroup/dex/internal/resolver"
+	"github.com/climbgroup/dex/pkg/version"
 )
 
 // packageContribution holds a package's shared file contributions for deferred generation.

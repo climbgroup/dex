@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/launchcg/dex/internal/adapter"
-	"github.com/launchcg/dex/internal/jsonutil"
-	"github.com/launchcg/dex/internal/manifest"
+	"github.com/climbgroup/dex/internal/adapter"
+	"github.com/climbgroup/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/manifest"
 )
 
 // Executor executes installation plans by creating directories, writing files,

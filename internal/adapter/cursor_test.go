@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 func TestGet_Cursor(t *testing.T) {

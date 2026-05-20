@@ -8,8 +8,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/launchcg/dex/internal/lockfile"
-	"github.com/launchcg/dex/internal/manifest"
+	"github.com/climbgroup/dex/internal/lockfile"
+	"github.com/climbgroup/dex/internal/manifest"
 )
 
 var listCmd = &cobra.Command{

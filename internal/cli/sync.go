@@ -9,8 +9,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/installer"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/installer"
 )
 
 var syncCmd = &cobra.Command{

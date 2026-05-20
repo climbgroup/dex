@@ -7,8 +7,8 @@ import (
 
 	"strings"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // CursorAdapter implements the Adapter interface for Cursor.

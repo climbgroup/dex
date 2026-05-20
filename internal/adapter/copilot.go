@@ -8,9 +8,9 @@ import (
 
 	"strings"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
-	"github.com/launchcg/dex/internal/template"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/template"
 )
 
 // CopilotAdapter implements the Adapter interface for GitHub Copilot.

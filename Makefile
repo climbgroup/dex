@@ -8,9 +8,9 @@ VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
 COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE    := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS := -s -w \
-  -X github.com/launchcg/dex/internal/cli.Version=$(VERSION) \
-  -X github.com/launchcg/dex/internal/cli.Commit=$(COMMIT) \
-  -X github.com/launchcg/dex/internal/cli.Date=$(DATE)
+  -X github.com/climbgroup/dex/internal/cli.Version=$(VERSION) \
+  -X github.com/climbgroup/dex/internal/cli.Commit=$(COMMIT) \
+  -X github.com/climbgroup/dex/internal/cli.Date=$(DATE)
 
 # Default target
 all: build

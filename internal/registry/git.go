@@ -15,9 +15,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/storage/memory"
 
-	pkgConfig "github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/pkg/version"
+	pkgConfig "github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/pkg/version"
 )
 
 // GitRef represents a parsed Git reference.

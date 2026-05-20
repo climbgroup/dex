@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/pkg/version"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/pkg/version"
 )
 
 // LocalRegistry handles file:// sources.

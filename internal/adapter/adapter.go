@@ -8,8 +8,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // InstallContext provides context for resource installation,

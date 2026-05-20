@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/launchcg/dex/internal/errors"
+	"github.com/climbgroup/dex/internal/errors"
 )
 
 // HTTPSPublisher provides manual upload instructions for HTTPS registries.

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/launchcg/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/jsonutil"
 )
 
 // Manifest tracks all files managed by dex.
