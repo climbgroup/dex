@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/launchcg/dex/internal/cli"
+	"github.com/climbgroup/dex/internal/cli"
 )
 
 func main() {

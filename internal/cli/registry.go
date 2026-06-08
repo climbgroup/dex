@@ -7,8 +7,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/registry"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/registry"
 )
 
 var registryCmd = &cobra.Command{

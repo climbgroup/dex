@@ -19,8 +19,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/pkg/version"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/pkg/version"
 )
 
 // S3Registry handles s3:// sources.

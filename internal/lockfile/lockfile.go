@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/launchcg/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/jsonutil"
 )
 
 const (

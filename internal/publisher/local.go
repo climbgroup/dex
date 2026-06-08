@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/internal/jsonutil"
-	"github.com/launchcg/dex/internal/registry"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/registry"
 )
 
 // LocalPublisher publishes packages to a local filesystem registry.

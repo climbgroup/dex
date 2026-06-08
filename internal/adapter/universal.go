@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/resource"
-	"github.com/launchcg/dex/internal/template"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/template"
 )
 
 // PlanUniversalFile creates an installation plan for a universal file resource.

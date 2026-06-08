@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/errors"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/errors"
 )
 
 // DefaultExcludes are the default patterns to exclude when packing.

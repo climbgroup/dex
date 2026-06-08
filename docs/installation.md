@@ -8,7 +8,7 @@
 ## Install from Source
 
 ```bash
-git clone https://github.com/launchcg/dex.git
+git clone https://github.com/climbgroup/dex.git
 cd dex
 make build
 ```

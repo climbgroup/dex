@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/launchcg/dex/internal/adapter"
-	"github.com/launchcg/dex/internal/manifest"
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/adapter"
+	"github.com/climbgroup/dex/internal/manifest"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // Helper function to create a test manifest

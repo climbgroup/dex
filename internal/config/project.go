@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/launchcg/dex/internal/resource"
+	"github.com/climbgroup/dex/internal/resource"
 )
 
 // ResourceSet holds all universal resource slices. When adding a new resource type,

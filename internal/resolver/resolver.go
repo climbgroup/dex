@@ -3,10 +3,10 @@ package resolver
 import (
 	"fmt"
 
-	"github.com/launchcg/dex/internal/config"
-	"github.com/launchcg/dex/internal/lockfile"
-	"github.com/launchcg/dex/internal/registry"
-	"github.com/launchcg/dex/pkg/version"
+	"github.com/climbgroup/dex/internal/config"
+	"github.com/climbgroup/dex/internal/lockfile"
+	"github.com/climbgroup/dex/internal/registry"
+	"github.com/climbgroup/dex/pkg/version"
 )
 
 // Resolver handles dependency resolution for package installation.

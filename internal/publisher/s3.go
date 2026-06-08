@@ -13,10 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/launchcg/dex/internal/jsonutil"
+	"github.com/climbgroup/dex/internal/jsonutil"
 
-	"github.com/launchcg/dex/internal/errors"
-	"github.com/launchcg/dex/internal/registry"
+	"github.com/climbgroup/dex/internal/errors"
+	"github.com/climbgroup/dex/internal/registry"
 )
 
 // S3Publisher publishes packages to an S3 bucket.
