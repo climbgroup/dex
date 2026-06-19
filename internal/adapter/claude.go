@@ -269,7 +269,52 @@ func (a *ClaudeAdapter) MergeSettingsConfig(existing map[string]any, settings *r
 		existing["agent"] = settings.Agent
 	}
 
+	// Merge lifecycle hooks under "hooks" without disturbing other settings keys
+	// or hooks for other events. Each hook becomes a matcher-group appended to its
+	// event's array; an equivalent group already present is skipped so repeated
+	// syncs stay idempotent.
+	if len(settings.Hooks) > 0 {
+		hooksMap, _ := existing["hooks"].(map[string]any)
+		if hooksMap == nil {
+			hooksMap = make(map[string]any)
+		}
+		for _, h := range settings.Hooks {
+			hookType := h.Type
+			if hookType == "" {
+				hookType = "command"
+			}
+			entry := map[string]any{"type": hookType, "command": h.Command}
+			if h.Timeout > 0 {
+				entry["timeout"] = h.Timeout
+			}
+			group := map[string]any{"hooks": []any{entry}}
+			if h.Matcher != "" {
+				group["matcher"] = h.Matcher
+			}
+
+			eventArr, _ := hooksMap[h.Event].([]any)
+			if !containsHookGroup(eventArr, group) {
+				eventArr = append(eventArr, group)
+			}
+			hooksMap[h.Event] = eventArr
+		}
+		existing["hooks"] = hooksMap
+	}
+
 	return existing
+}
+
+// containsHookGroup reports whether arr already holds a hook group equal to want.
+// Equality is by stable string form so an entry loaded from JSON (where numbers
+// decode to float64) still matches a freshly built one (where they are int).
+func containsHookGroup(arr []any, want map[string]any) bool {
+	target := fmt.Sprintf("%v", want)
+	for _, g := range arr {
+		if fmt.Sprintf("%v", g) == target {
+			return true
+		}
+	}
+	return false
 }
 
 // hasFrontmatter checks if content already starts with YAML frontmatter.

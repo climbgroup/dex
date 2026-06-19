@@ -616,6 +616,95 @@ func TestClaudeAdapter_MergeSettingsConfig_Nil(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
+func TestClaudeAdapter_MergeSettingsConfig_Hooks(t *testing.T) {
+	adapter := &ClaudeAdapter{}
+
+	settings := &resource.ClaudeSettings{
+		Name: "test",
+		Hooks: []resource.ClaudeHookBlock{
+			{Event: "Stop", Command: "python3 babysitter.py"},
+			{Event: "PreToolUse", Matcher: "Bash", Command: "guard.sh", Timeout: 30},
+		},
+	}
+
+	result := adapter.MergeSettingsConfig(nil, settings)
+
+	expected := map[string]any{
+		"hooks": map[string]any{
+			"Stop": []any{
+				map[string]any{
+					"hooks": []any{
+						map[string]any{"type": "command", "command": "python3 babysitter.py"},
+					},
+				},
+			},
+			"PreToolUse": []any{
+				map[string]any{
+					"matcher": "Bash",
+					"hooks": []any{
+						map[string]any{"type": "command", "command": "guard.sh", "timeout": 30},
+					},
+				},
+			},
+		},
+	}
+	assert.Equal(t, expected, result)
+}
+
+// Hooks must merge into an existing settings.json without clobbering unrelated
+// keys or hooks already registered for other events.
+func TestClaudeAdapter_MergeSettingsConfig_HooksPreserveExisting(t *testing.T) {
+	adapter := &ClaudeAdapter{}
+
+	existing := map[string]any{
+		"allow":      []any{"Read(*)"},
+		"statusLine": map[string]any{"type": "command", "command": "ststatus"},
+		"hooks": map[string]any{
+			"SessionStart": []any{
+				map[string]any{"hooks": []any{map[string]any{"type": "command", "command": "hello.sh"}}},
+			},
+		},
+	}
+
+	settings := &resource.ClaudeSettings{
+		Name:  "test",
+		Hooks: []resource.ClaudeHookBlock{{Event: "Stop", Command: "babysitter.py"}},
+	}
+
+	result := adapter.MergeSettingsConfig(existing, settings)
+
+	// Unrelated keys survive untouched.
+	assert.Equal(t, []any{"Read(*)"}, result["allow"])
+	assert.Equal(t, map[string]any{"type": "command", "command": "ststatus"}, result["statusLine"])
+
+	hooks := result["hooks"].(map[string]any)
+	// The pre-existing SessionStart hook is preserved.
+	assert.Equal(t, []any{
+		map[string]any{"hooks": []any{map[string]any{"type": "command", "command": "hello.sh"}}},
+	}, hooks["SessionStart"])
+	// The new Stop hook is added alongside it.
+	assert.Equal(t, []any{
+		map[string]any{"hooks": []any{map[string]any{"type": "command", "command": "babysitter.py"}}},
+	}, hooks["Stop"])
+}
+
+// Re-merging the same hook (as happens on every dex sync) must not append a
+// duplicate group.
+func TestClaudeAdapter_MergeSettingsConfig_HooksIdempotent(t *testing.T) {
+	adapter := &ClaudeAdapter{}
+
+	settings := &resource.ClaudeSettings{
+		Name:  "test",
+		Hooks: []resource.ClaudeHookBlock{{Event: "Stop", Command: "babysitter.py"}},
+	}
+
+	first := adapter.MergeSettingsConfig(nil, settings)
+	second := adapter.MergeSettingsConfig(first, settings)
+
+	stop := second["hooks"].(map[string]any)["Stop"].([]any)
+	assert.Len(t, stop, 1, "re-merging the same hook should not duplicate it")
+}
+
 func TestMergePlans(t *testing.T) {
 	plan1 := &Plan{
 		PackageName: "plugin1",
