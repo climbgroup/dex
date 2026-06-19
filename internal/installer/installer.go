@@ -1102,11 +1102,8 @@ func (i *Installer) resolveRegistry(spec *PackageSpec) (registry.Registry, error
 	if spec.Registry != "" {
 		for _, reg := range i.project.Registries {
 			if reg.Name == spec.Registry {
-				if reg.Path != "" {
-					return registry.NewRegistryWithConfig("file:"+reg.Path, registry.ModeRegistry, reg.Config)
-				}
-				if reg.URL != "" {
-					return registry.NewRegistryWithConfig(reg.URL, registry.ModeRegistry, reg.Config)
+				if src := reg.Source(); src != "" {
+					return registry.NewRegistryWithConfig(src, registry.ModeRegistry, reg.Config)
 				}
 			}
 		}
@@ -1152,12 +1149,8 @@ func (i *Installer) searchRegistries(pkgName string) (string, registry.Registry,
 	var matches []found
 
 	for _, regConfig := range i.project.Registries {
-		var regSource string
-		if regConfig.Path != "" {
-			regSource = "file:" + regConfig.Path
-		} else if regConfig.URL != "" {
-			regSource = regConfig.URL
-		} else {
+		regSource := regConfig.Source()
+		if regSource == "" {
 			continue
 		}
 
