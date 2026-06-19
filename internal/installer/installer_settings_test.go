@@ -185,3 +185,96 @@ package "multi-resource-plugin" {
 		"allow": []any{"mcp__test-server"},
 	}, settings)
 }
+
+// TestInstaller_ClaudeHookMergesIntoExistingSettings verifies a package that
+// registers a Stop hook merges into a pre-existing .claude/settings.json without
+// clobbering unrelated keys or hooks for other events, and that re-installing
+// (a sync) does not duplicate the hook.
+func TestInstaller_ClaudeHookMergesIntoExistingSettings(t *testing.T) {
+	projectDir := t.TempDir()
+	pluginDir := t.TempDir()
+
+	packageHCL := `meta {
+  name        = "hook-plugin"
+  version     = "1.0.0"
+  description = "Plugin that registers a Stop hook"
+  platforms   = ["claude-code"]
+}
+
+settings "babysitter-hook" {
+  claude {
+    hook "Stop" {
+      command = "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/babysitter/babysitter.py\" hook"
+    }
+  }
+}
+`
+	err := os.WriteFile(filepath.Join(pluginDir, "package.hcl"), []byte(packageHCL), 0644)
+	require.NoError(t, err)
+
+	projectHCL := `project {
+  name = "test-project"
+  default_platform = "claude-code"
+}
+
+package "hook-plugin" {
+  source = "file://` + pluginDir + `"
+}
+`
+	err = os.WriteFile(filepath.Join(projectDir, "dex.hcl"), []byte(projectHCL), 0644)
+	require.NoError(t, err)
+
+	// Pre-seed a settings.json with hand-written content dex must preserve:
+	// an unrelated top-level key and a hook for a different event.
+	claudeDir := filepath.Join(projectDir, ".claude")
+	require.NoError(t, os.MkdirAll(claudeDir, 0755))
+	settingsPath := filepath.Join(claudeDir, "settings.json")
+	preexisting := map[string]any{
+		"allow":      []any{"Read(*)"},
+		"statusLine": map[string]any{"type": "command", "command": "my-status"},
+		"hooks": map[string]any{
+			"SessionStart": []any{
+				map[string]any{"hooks": []any{map[string]any{"type": "command", "command": "hello.sh"}}},
+			},
+		},
+	}
+	seed, err := json.MarshalIndent(preexisting, "", "  ")
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(settingsPath, seed, 0644))
+
+	// Install twice to also assert idempotency (a re-sync must not duplicate).
+	for i := 0; i < 2; i++ {
+		installer, err := NewInstaller(projectDir, "")
+		require.NoError(t, err)
+		_, err = installer.Install(nil)
+		require.NoError(t, err)
+	}
+
+	settingsContent, err := os.ReadFile(settingsPath)
+	require.NoError(t, err)
+	var settings map[string]any
+	require.NoError(t, json.Unmarshal(settingsContent, &settings))
+
+	// Unrelated keys survive.
+	assert.Equal(t, []any{"Read(*)"}, settings["allow"])
+	assert.Equal(t, map[string]any{"type": "command", "command": "my-status"}, settings["statusLine"])
+
+	hooks, ok := settings["hooks"].(map[string]any)
+	require.True(t, ok, "hooks should be present")
+
+	// The pre-existing SessionStart hook is untouched.
+	assert.Equal(t, []any{
+		map[string]any{"hooks": []any{map[string]any{"type": "command", "command": "hello.sh"}}},
+	}, hooks["SessionStart"])
+
+	// The Stop hook is registered exactly once despite two installs.
+	stop, ok := hooks["Stop"].([]any)
+	require.True(t, ok, "Stop hook should be present")
+	require.Len(t, stop, 1, "Stop hook must not be duplicated across syncs")
+	group := stop[0].(map[string]any)
+	inner := group["hooks"].([]any)
+	require.Len(t, inner, 1)
+	cmd := inner[0].(map[string]any)
+	assert.Equal(t, "command", cmd["type"])
+	assert.Contains(t, cmd["command"], "babysitter.py")
+}

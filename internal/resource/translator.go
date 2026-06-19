@@ -661,5 +661,6 @@ func TranslateToClaudeSettings(s *Settings) *ClaudeSettings {
 		AutoMemoryDirectory:        s.Claude.AutoMemoryDirectory,
 		IncludeGitInstructions:     s.Claude.IncludeGitInstructions,
 		Agent:                      s.Claude.Agent,
+		Hooks:                      s.Claude.Hooks,
 	}
 }

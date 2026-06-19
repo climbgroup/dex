@@ -2,6 +2,19 @@ package resource
 
 import "fmt"
 
+// claudeHookEvents is the set of Claude Code lifecycle events a hook may target.
+var claudeHookEvents = map[string]bool{
+	"PreToolUse":       true,
+	"PostToolUse":      true,
+	"UserPromptSubmit": true,
+	"Notification":     true,
+	"Stop":             true,
+	"SubagentStop":     true,
+	"PreCompact":       true,
+	"SessionStart":     true,
+	"SessionEnd":       true,
+}
+
 // Settings represents a universal settings resource. Platform-specific settings
 // go inside the platform override blocks (claude {}, copilot {}, cursor {}).
 type Settings struct {
@@ -33,6 +46,41 @@ type SettingsClaudeOverride struct {
 	AutoMemoryDirectory        string            `hcl:"auto_memory_directory,optional"`
 	IncludeGitInstructions     *bool             `hcl:"include_git_instructions,optional"`
 	Agent                      string            `hcl:"agent,optional"`
+	Hooks                      []ClaudeHookBlock `hcl:"hook,block"`
+}
+
+// ClaudeHookBlock declares a single Claude Code lifecycle hook to register in
+// .claude/settings.json under the "hooks" key. The block label is the event
+// name, e.g.
+//
+//	hook "Stop" {
+//	  command = "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/foo.py\""
+//	}
+//
+//	hook "PreToolUse" {
+//	  matcher = "Bash"
+//	  command = "..."
+//	  timeout = 30
+//	}
+//
+// Hook commands may reference $CLAUDE_PROJECT_DIR (set by Claude Code) to locate
+// scripts a package ships, so the path stays portable across machines.
+type ClaudeHookBlock struct {
+	// Event is the lifecycle event the hook fires on (the block label).
+	Event string `hcl:"event,label"`
+
+	// Matcher restricts the hook to matching tools/sources (event-dependent,
+	// e.g. a tool name for PreToolUse). Empty means "all".
+	Matcher string `hcl:"matcher,optional"`
+
+	// Type is the hook handler type; defaults to "command".
+	Type string `hcl:"type,optional"`
+
+	// Command is the shell command to run.
+	Command string `hcl:"command,attr"`
+
+	// Timeout is an optional per-hook timeout in seconds (0 = unset).
+	Timeout int `hcl:"timeout,optional"`
 }
 
 func (s *Settings) ResourceType() string                  { return "settings" }
@@ -45,6 +93,19 @@ func (s *Settings) GetTemplateFiles() []TemplateFileBlock { return nil }
 func (s *Settings) Validate() error {
 	if s.Name == "" {
 		return fmt.Errorf("settings: name is required")
+	}
+	if s.Claude != nil {
+		for _, h := range s.Claude.Hooks {
+			if h.Command == "" {
+				return fmt.Errorf("settings %q: hook %q requires a command", s.Name, h.Event)
+			}
+			if !claudeHookEvents[h.Event] {
+				return fmt.Errorf("settings %q: unknown hook event %q", s.Name, h.Event)
+			}
+			if h.Type != "" && h.Type != "command" {
+				return fmt.Errorf("settings %q: hook %q has unsupported type %q (only \"command\")", s.Name, h.Event, h.Type)
+			}
+		}
 	}
 	return nil
 }

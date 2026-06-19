@@ -459,6 +459,9 @@ type ClaudeSettings struct {
 
 	// Agent is the name of a custom subagent to run as the default for the session
 	Agent string
+
+	// Hooks lists Claude Code lifecycle hooks to register under settings.json "hooks".
+	Hooks []ClaudeHookBlock
 }
 
 // ResourceType returns the HCL block type for Claude settings.
