@@ -221,10 +221,8 @@ func (r *Resolver) getRegistry(source, registryName string) (registry.Registry, 
 		// Look up registry in project config
 		for _, regCfg := range r.project.Registries {
 			if regCfg.Name == registryName {
-				if regCfg.Path != "" {
-					reg, err = registry.NewRegistryWithConfig("file:"+regCfg.Path, registry.ModeRegistry, regCfg.Config)
-				} else if regCfg.URL != "" {
-					reg, err = registry.NewRegistryWithConfig(regCfg.URL, registry.ModeRegistry, regCfg.Config)
+				if src := regCfg.Source(); src != "" {
+					reg, err = registry.NewRegistryWithConfig(src, registry.ModeRegistry, regCfg.Config)
 				}
 				break
 			}

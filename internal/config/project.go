@@ -158,6 +158,60 @@ type RegistryBlock struct {
 	Config map[string]string `hcl:"config,optional"`
 }
 
+// Source returns the registry's source URL for the registry factory. An
+// environment variable can override the location declared in the file, so a
+// shared registry can be relocated without editing every project's dex.hcl:
+//
+//   - DEX_REGISTRY_<NAME>  overrides this registry only (NAME upper-cased, with
+//     any non-alphanumeric character replaced by "_")
+//   - DEX_REGISTRY         overrides any registry that has no specific override
+//
+// A bare value with no scheme (e.g. "/path/to/registry" or "~/Grove/dex-registry")
+// is treated as a local file registry. When no override is set it falls back to
+// the block's Path (as file:) or URL.
+func (r RegistryBlock) Source() string {
+	if v := os.Getenv("DEX_REGISTRY_" + registryEnvKey(r.Name)); v != "" {
+		return normalizeRegistrySource(v)
+	}
+	if v := os.Getenv("DEX_REGISTRY"); v != "" {
+		return normalizeRegistrySource(v)
+	}
+	if r.Path != "" {
+		return "file:" + r.Path
+	}
+	return r.URL
+}
+
+// registryEnvKey maps a registry name to the env-var suffix: upper-cased with
+// non-alphanumeric characters replaced by "_" (so "grove" -> "GROVE",
+// "my-reg" -> "MY_REG").
+func registryEnvKey(name string) string {
+	var b strings.Builder
+	for _, c := range strings.ToUpper(name) {
+		if (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') {
+			b.WriteRune(c)
+		} else {
+			b.WriteByte('_')
+		}
+	}
+	return b.String()
+}
+
+// normalizeRegistrySource treats a value that already carries a scheme as a full
+// source URL, and a bare path as a local file registry. A leading "~/" is
+// expanded to the user's home directory.
+func normalizeRegistrySource(v string) string {
+	if strings.HasPrefix(v, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			v = filepath.Join(home, v[2:])
+		}
+	}
+	if strings.Contains(v, "://") || strings.HasPrefix(v, "file:") || strings.HasPrefix(v, "git+") {
+		return v
+	}
+	return "file:" + v
+}
+
 // PackageBlock defines a package dependency.
 // Packages can be sourced directly (git+https://, file://) or from a registry.
 type PackageBlock struct {
