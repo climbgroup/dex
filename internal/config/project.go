@@ -177,7 +177,7 @@ func (r RegistryBlock) Source() string {
 		return normalizeRegistrySource(v)
 	}
 	if r.Path != "" {
-		return "file:" + r.Path
+		return normalizeRegistrySource(r.Path)
 	}
 	return r.URL
 }
