@@ -41,6 +41,19 @@ func TestRegistryBlock_Source(t *testing.T) {
 	}
 }
 
+// TestRegistryBlock_Source_TildeExpansion checks that a ~ path in the Path
+// field is expanded to an absolute path, not left as a relative "~/" prefix.
+func TestRegistryBlock_Source_TildeExpansion(t *testing.T) {
+	t.Setenv("DEX_REGISTRY", "")
+	t.Setenv("DEX_REGISTRY_CLIMB", "")
+	home, _ := os.UserHomeDir()
+	reg := RegistryBlock{Name: "climb", Path: "~/.climb/registry"}
+	want := "file:" + filepath.Join(home, ".climb/registry")
+	if got := reg.Source(); got != want {
+		t.Fatalf("tilde path: Source() = %q, want %q", got, want)
+	}
+}
+
 // TestNormalizeRegistrySource_HomeAndScheme checks "~/" expansion and that an
 // existing scheme is preserved.
 func TestNormalizeRegistrySource_HomeAndScheme(t *testing.T) {
